@@ -19,16 +19,17 @@ router.post('/createuser', [
 
 ], async (req, resp) => {
     //if there are errors, return bad request and the error
+    let success=false;
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return resp.status(400).json({ errors: errors.array() });
+        return resp.status(400).json({success, errors: errors.array() });
     }
     try {
 
         //check whether the user with this email exist already 
         let User = await user.findOne({ email: req.body.email });
         if (User) {
-            return resp.status(400).json({ error: "sorry user with this email already exist" })
+            return resp.status(400).json({success, error: "sorry user with this email already exist" })
         }
         const salt = await bcrypt.genSalt(10);
         const secpass = await bcrypt.hash(req.body.password, salt);
@@ -46,8 +47,8 @@ router.post('/createuser', [
         const authtoken = jwt.sign(data, JWT_SECRET);
         // console.log(jwtdata);
 
-
-        resp.json({ authtoken });
+       success=true;
+        resp.json({ success,authtoken });
     } catch (error) {
         console.error(error.message);
         resp.status(500).send("some Error occured")
